@@ -93,65 +93,65 @@
 1	Misc	:
 
 # Coordinating conjunctions.
-1	Misc	and
-1	Misc	but
-1	Misc	or
-1	Misc	either
-1	Misc	nor
-1	Misc	neither
-1	Misc	so
+1	CoordConj	and
+1	CoordConj	but
+1	CoordConj	or
+1	CoordConj	either
+1	CoordConj	nor
+1	CoordConj	neither
+1	CoordConj	so
 
 # Numbers.
-1	Misc	eight
-1	Misc	five
-1	Misc	one
-1	Misc	5.5
-1	Misc	sixty
-1	Misc	5,000
+1	Numbers	eight
+1	Numbers	five
+1	Numbers	one
+1	Numbers	5.5
+1	Numbers	sixty
+1	Numbers	5,000
 
 # Expletive.
 1	Misc	there
 
 # Subordinating conjunctions.
-1	Misc	that
-1	Misc	so
-1	Misc	while
-1	Misc	because
-1	Misc	if
+1	SubConj	that
+1	SubConj	so
+1	SubConj	while
+1	SubConj	because
+1	SubConj	if
 
 # Modals.
-1	Misc	can
-1	Misc	could
-1	Misc	may
-1	Misc	might
-1	Misc	must
-1	Misc	ought
-1	Misc	shall
-1	Misc	should
-1	Misc	will
-1	Misc	would
+1	Modal	can
+1	Modal	could
+1	Modal	may
+1	Modal	might
+1	Modal	must
+1	Modal	ought
+1	Modal	shall
+1	Modal	should
+1	Modal	will
+1	Modal	would
 
 
 # Adjectives.
-1	Misc	bloody
-1	Misc	weary
-1	Misc	unable
-1	Misc	trusty
-1	Misc	further
-1	Misc	sacred
-1	Misc	tropical
-1	Misc	indigenous
-1	Misc	temperate
-1	Misc	hot
-1	Misc	lucky
-1	Misc	simple
-1	Misc	tiny
-1	Misc	hard	
-1	Misc	sensational
-1	Misc	comparable
-1	Misc	angolian
-1	Misc	yellow
-1	Misc	plodding
+1	Adj	bloody
+1	Adj	weary
+1	Adj	unable
+1	Adj	trusty
+1	Adj	further
+1	Adj	sacred
+1	Adj	tropical
+1	Adj	indigenous
+1	Adj	temperate
+1	Adj	hot
+1	Adj	lucky
+1	Adj	simple
+1	Adj	tiny
+1	Adj	hard	
+1	Adj	sensational
+1	Adj	comparable
+1	Adj	angolian
+1	Adj	yellow
+1	Adj	plodding
 
 # Comparative adjectives.
 1	Misc	bloodier
@@ -172,138 +172,138 @@
 1	Misc	hardest
 
 # Plural nouns.
-1	Misc	coconuts
-1	Misc	halves
-1	Misc	snows
-1	Misc	mountains
-1	Misc	areas
-1	Misc	strangers
-1	Misc	inches
-1	Misc	snakes
-1	Misc	ants
-1	Misc	nights
+1	Nouns	coconuts
+1	Nouns	halves
+1	Nouns	snows
+1	Nouns	mountains
+1	Nouns	areas
+1	Nouns	strangers
+1	Nouns	inches
+1	Nouns	snakes
+1	Nouns	ants
+1	Nouns	nights
 
 # More proper nouns, not people.
 
-1	Misc	Camelot
-1	Misc	England
-1	Misc	Holy Grail
-1	Misc	Round Table
+1	NotPeopleProperNoun	Camelot
+1	NotPeopleProperNoun	England
+1	NotPeopleProperNoun	Holy Grail
+1	NotPeopleProperNoun	Round Table
 
 # Plural proper nouns.
 1	Misc	Britons
 1	Misc	Saxons
 
 # Personal pronouns.
-1	Misc	he
-1	Misc	her
-1	Misc	him
-1	Misc	it
-1	Misc	one
-1	Misc	she
-1	Misc	them
-1	Misc	they
+1	PersonalPronoun	he
+1	PersonalPronoun	her
+1	PersonalPronoun	him
+1	PersonalPronoun	it
+1	PersonalPronoun	one
+1	PersonalPronoun	she
+1	PersonalPronoun	them
+1	PersonalPronoun	they
 
 
 # Possessive personal pronouns
-1	Misc	her
-1	Misc	his
-1	Misc	its
-1	Misc	their
+1	PosPersPron	her
+1	PosPersPron	his
+1	PosPersPron	its
+1	PosPersPron	their
 
 # Adverbs.
-1	Misc	again
-1	Misc	already
-1	Misc	currently
-1	Misc	frequently
-1	Misc	precisely
-1	Misc	south
-1	Misc	successfully
-1	Misc	unfortunately
+1	Adverb	again
+1	Adverb	already
+1	Adverb	currently
+1	Adverb	frequently
+1	Adverb	precisely
+1	Adverb	south
+1	Adverb	successfully
+1	Adverb	unfortunately
 
 # 'do'/'does'
-1	DoDoes	do
-1	DoDoes	does
+1	Do	do
+1	Does	does
 
 # 'to'
-1	Misc	to
+1	To	to
 
 # 'not'
 1	Misc	not
 
 # Verbs (base form).
-1	VerbB	have
-1	VerbB	speak
-1	VerbB	cover
-1	VerbB	be
-1	VerbB	ride
-1	VerbB	drink
-1	VerbB	grow
-1	VerbB	carry
-1	VerbB	suggest
-1	VerbB	migrate
-1	VerbB	know
+1	VerbBF	have
+1	VerbBF	speak
+1	VerbBF	cover
+1	VerbBF	be
+1	VerbBF	ride
+1	VerbBF	drink
+1	VerbBF	grow
+1	VerbBF	carry
+1	VerbBF	suggest
+1	VerbBF	migrate
+1	VerbBF	know
 
 # Verbs (past tense).
-1	Misc	had
-1	Misc	spoke
-1	Misc	covered
-1	Misc	was
-1	Misc	were
-1	Misc	rode
-1	Misc	drank
-1	Misc	grew
-1	Misc	carried
-1	Misc	suggested
-1	Misc	migrated
-1	Misc	knew
+1	VerbPastTense	had
+1	VerbPastTense	spoke
+1	VerbPastTense	covered
+1	VerbPastTense	was
+1	VerbPastTense	were
+1	VerbPastTense	rode
+1	VerbPastTense	drank
+1	VerbPastTense	grew
+1	VerbPastTense	carried
+1	VerbPastTense	suggested
+1	VerbPastTense	migrated
+1	VerbPastTense	knew
 
 # Verbs (present participles).
-1	Misc	having
-1	Misc	speaking
-1	Misc	covering
-1	Misc	being
-1	Misc	riding
-1	Misc	drinking
-1	Misc	growing
-1	Misc	carrying
-1	Misc	suggesting
-1	Misc	migrating
-1	Misc	knowing
+1	VerbPP	having
+1	VerbPP	speaking
+1	VerbPP	covering
+1	VerbPP	being
+1	VerbPP	riding
+1	VerbPP	drinking
+1	VerbPP	growing
+1	VerbPP	carrying
+1	VerbPP	suggesting
+1	VerbPP	migrating
+1	VerbPP	knowing
 
 # Verbs (past participle).
-1	Misc	had
-1	Misc	spoken
-1	Misc	covered
-1	Misc	been
-1	Misc	ridden
-1	Misc	drunk
-1	Misc	grown
-1	Misc	carried
-1	Misc	suggested
-1	Misc	migrated
-1	Misc	known
+1	VerbPastPartic	had
+1	VerbPastPartic	spoken
+1	VerbPastPartic	covered
+1	VerbPastPartic	been
+1	VerbPastPartic	ridden
+1	VerbPastPartic	drunk
+1	VerbPastPartic	grown
+1	VerbPastPartic	carried
+1	VerbPastPartic	suggested
+1	VerbPastPartic	migrated
+1	VerbPastPartic	known
 
 # More third person singular verbs.
-1	Misc	speaks
-1	Misc	grows
-1	Misc	goes
-1	Misc	migrates
-1	Misc	suggests
-1	Misc	knows
+1	Verb3PSV	speaks
+1	Verb3PSV	grows
+1	Verb3PSV	goes
+1	Verb3PSV	migrates
+1	Verb3PSV	suggests
+1	Verb3PSV	knows
 
 # Verbs (present, plural, third person).
-1	Misc	have
-1	Misc	speak
-1	Misc	cover
-1	Misc	are
-1	Misc	ride
-1	Misc	drink
-1	Misc	grow
-1	Misc	carry
-1	Misc	suggest
-1	Misc	migrate
-1	Misc	know
+1	VerbPP3P	have
+1	VerbPP3P	speak
+1	VerbPP3P	cover
+1	VerbPP3P	are
+1	VerbPP3P	ride
+1	VerbPP3P	drink
+1	VerbPP3P	grow
+1	VerbPP3P	carry
+1	VerbPP3P	suggest
+1	VerbPP3P	migrate
+1	VerbPP3P	know
 
 # Wh-determiners.
 1	Misc	that
@@ -311,17 +311,17 @@
 1	Misc	which
 
 # Wh-pronouns.
-1	Misc	what
-1	Misc	who
+1	WH-NP	what
+1	WH-NP	who
 
 # Wh possessive pronoun.
 1	Misc	whose
 
 # Wh-adverbs
-1	Misc	how
-1	Misc	when
-1	Misc	where
-1	Misc	why
+1	WH-ADV	how
+1	WH-ADV	when
+1	WH-ADV	where
+1	WH-ADV	why
 
 
 # Possessive marker.

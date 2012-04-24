@@ -2,22 +2,71 @@
 
 # These two rules are required; choose their weights carefully!
 99	START	S1
-1	START	S2
+0	START	S2
 
 # This is a very, very, very simple grammar to get you started.
 
 10	S1	NP VP .
-2	S1	NP VP !
-4	S1	DoDoes NP VP_B ?
+5	S1	NP , NP , VP .
+5	S1	NP VP and VP .
+1	S1	NP VP Adverb SubConj NP VP .
+5	S1	Q ?
+5	S1	WH-Q ?
+1	S1	it is NP who Verb3PSV NP !
+1	S1	either NP Verb3PSV or NP does .
+1	S1	Do not VerbBF !
+1	S1	when NP VP , NP VP .
+
+10	Q	Do Nouns VerbBF
+10	Q	Does NP VerbBF
+10	WH-Q	WH-NP Q
+10	WH-Q	WH-ADV Q
+5	WH-Q	WH-NP Does NP VerbBF PersonalPronoun VerbBF
+10	WH-Q	WH-NP Does NP VerbBF NP
+5	WH-Q	WH-ADV Does NP VerbBF PersonalPronoun VerbBF
+10	WH-Q	WH-ADV Does NP VerbBF NP
+1	Q	VerbPP3P PersonalPronoun VerbPP NP VerbBF To NP
 
 1	VP	VerbT NP
-1	VP_B	VerbB NP
+1	VP	VerbPastTense to NP
+1	VP	VerbPastTense Prep NP
+1	VP	VerbPastTense that NP VP
+1	VP	VerbPastTense NP
+1	VP	VerbPP3P Prep NP
+1	VP	Verb3PSV NP
+1	VP	Modal have VerbPastPartic
+1	VP	Modal have been VerbPastPartic Prep NP
+1	VP	Modal be VerbPP Prep NP
+1	VP	will VerbBF
+1	VP	will VerbBF of it
+1	VP	was VerbPastTense by NP
+1	VP	VerbBF Adverb because NP VP 
+1	VP	VerbBF NP VP
+1	VP	Modal have been VerbPP for NP
+1	VP	VerbBF Adverb
+1	VP	be VerbPastTense
+1	VP	VerbT
 
-20	NP	Det Nbar
+10	NP	Det Nbar
+1	NP	PosPersPron Nbar
 1	NP	Proper
-1	NP	NP PP
+1	NP	PersonalPronoun
+1	NP	NotPeopleProperNoun
+1	NP	Adj
+1	NP	VerbPP To NP
+1	NP	Numbers Nouns
+1	NP	neither NP nor NP
+1	NP	the Holy Grail
+1	NP	NP , NP 
+1	NP	NP and NP
+1	NP	WH-NP PersonalPronoun VerbPP3P VerbPP
+1	NP	NP with NP
+1	NP	NP that VP 
 
-20	Nbar	Noun
+5	Nbar	Noun
+1	Nbar	Adj Noun
 1	Nbar	Nbar PP
+1	Nbar	NotPeopleProperNoun
 
 1	PP	Prep NP
+
