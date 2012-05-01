@@ -29,8 +29,11 @@ class PCFGParser(Parser):
         #       trees need to be binarized so that rules are at
         #       most binary
 
-        self.lexicon = Lexicon(train_trees)
-        self.grammar = Grammar(train_trees)
+        bin_train_trees = []
+        for train_tree in train_trees:
+            bin_train_trees.append(TreeAnnotations.binarize_tree(train_tree))
+	self.lexicon = Lexicon(bin_train_trees)
+        self.grammar = Grammar(bin_train_trees)
 
 
     def get_best_parse(self, sentence):
@@ -40,7 +43,7 @@ class PCFGParser(Parser):
         """
         # TODO: implement this method
 
-        return None
+        return Tree("ROOT", [Tree("Kuka", [])])
 
 
 class BaselineParser(Parser):
