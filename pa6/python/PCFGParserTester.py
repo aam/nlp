@@ -31,10 +31,13 @@ class PCFGParser(Parser):
 
         bin_train_trees = []
         for train_tree in train_trees:
+            print "Train tree:\n%s" % Trees.PennTreeRenderer.render(train_tree)
             bin_train_trees.append(TreeAnnotations.binarize_tree(train_tree))
 	self.lexicon = Lexicon(bin_train_trees)
         self.grammar = Grammar(bin_train_trees)
 
+        print "Lexicon: ", self.lexicon.get_all_tags()
+        print "Grammar: ", unicode(self.grammar)
 
     def get_best_parse(self, sentence):
         """
@@ -43,8 +46,116 @@ class PCFGParser(Parser):
         """
         # TODO: implement this method
 
-        return Tree("ROOT", [Tree("Kuka", [])])
+        matrix = (len(sentence) + 1) * [0]
+        print "len(matrix)=", len(matrix)
+        for i in range(len(sentence) + 1):
+            matrix[i] = (len(sentence) + 1) * [0]
+            for j in range(i, len(sentence) + 1):
+                matrix[i][j] = collections.defaultdict(lambda: 0.0)
 
+        back = copy.deepcopy(matrix)
+
+        print "Sentence: ", sentence
+        i = 0
+        for word in sentence:
+            for tag_for_word in self.lexicon.word_to_tag_counters[word]:
+                for tag in tag_for_word:
+                    print word, "->", tag
+                    score = self.lexicon.score_tagging(word, tag)
+                    print "matrix[", i, ",", i + 1, ", ", tag, "] = ", score
+                    matrix[i][i+1][tag] = score
+                    back[i][i+1][tag] = word
+
+            # Handle unaries
+
+            added = True
+            while added:
+                added = False
+                for B in matrix[i][i+1].keys():
+                    for urAtoB in self.grammar.get_unary_rules_by_child(B):
+                        A = urAtoB.parent
+                        prob = urAtoB.score * matrix[i][i+1][B]
+                        if  prob > matrix[i][i+1][A]:
+                            matrix[i][i+1][A] = prob
+                            print "matrix[", i, ",", i + 1, ", ", A, "] = ", prob
+                            back[i][i+1][A] = B
+                            print "back[", i, ",", i + 1, ", ", A, "] = ", B
+                            added = True
+
+            i = i + 1
+
+        for span in range(2, len(sentence) + 1):
+            print "span=", span
+            for begin in range(0, len(sentence) - span + 1):
+                end = begin + span
+                print "\tbegin=", begin, " end=", end
+                for split in range(begin + 1, end - 1 + 1):
+                    print "\t\tsplit=", split
+                    for B in matrix[begin][split]:
+                        print "\t\t\tB=", B
+                        for C in matrix[split][end]:
+                            print "\t\t\t\tC=", C
+                            Bs = self.grammar.get_binary_rules_by_left_child(B)
+                            Cs = self.grammar.get_binary_rules_by_right_child(C)
+                            BCs = set(Bs).intersection(set(Cs))
+                            for BC in BCs:
+                                A = BC.parent
+                                prob = matrix[begin][split][B] * matrix[split][end][C] * BC.score
+                                if prob > matrix[begin][end][A]:
+                                    matrix[begin][end][A] = prob
+                                    back[begin][end][A] = (split, B, C)
+                                    print "matrix[", begin, ",", end, ", ", A, "] = ", prob
+                                    print "back[", begin, ",", end, ", ", A, "] = ", (split, B, C)
+                # Handle unaries
+                added = True
+                while added:
+                    added = False
+                    for B in matrix[begin][end].keys():
+                        for urAtoB in self.grammar.get_unary_rules_by_child(B):
+                            A = urAtoB.parent
+                            prob = urAtoB.score * matrix[begin][end][B]
+                            if  prob > matrix[begin][end][A]:
+                                matrix[begin][end][A] = prob
+                                print "matrix[", begin, ",", end, ", ", A, "] = ", prob
+                                back[begin][end][A] = B
+                                print "back[", begin, ",", end, ", ", A, "] = ", B
+                                added = True
+
+        print matrix[0][len(sentence)]
+        print back[0][len(sentence)]
+                            
+
+        result = self.stepback(back, 0, len(sentence), 'ROOT')
+        result = TreeAnnotations.unannotate_tree(result)
+        return result
+
+
+    def stepback(self, back, i, j, NT):
+        directions = back[i][j][NT]
+        if directions == 0:
+            return []
+        print "back[", i, "][", j, "][", NT, "] = ", directions
+        children = []
+        if isinstance(directions, tuple):
+            (split, B, C) = directions
+            children.append(self.stepback(back, i, split, B))
+            children.append(self.stepback(back, split, j, C))
+        else:
+            newNT = directions
+            if not self.lexicon.is_known(newNT):
+                cs = self.stepback(back, i, j, newNT)
+                if isinstance(cs, Tree):
+                    children.append(cs)
+            else:
+                children.append(Tree(newNT))
+        if len(children) > 0:
+            result = Tree(NT, children)
+        else:
+            result = Tree(NT)
+        print "Result:%s" % Trees.PennTreeRenderer.render(result)
+
+        return result
+    
 
 class BaselineParser(Parser):
 
