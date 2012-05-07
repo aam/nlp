@@ -31,13 +31,24 @@ class PCFGParser(Parser):
 
         bin_train_trees = []
         for train_tree in train_trees:
-            print "Train tree:\n%s" % Trees.PennTreeRenderer.render(train_tree)
-            bin_train_trees.append(TreeAnnotations.binarize_tree(train_tree))
+#            t = TreeAnnotations.annotate_tree(train_tree)
+            t = TreeAnnotations.binarize_tree(train_tree)
+            bin_train_trees.append(t)
 	self.lexicon = Lexicon(bin_train_trees)
         self.grammar = Grammar(bin_train_trees)
 
-        print "Lexicon: ", self.lexicon.get_all_tags()
-        print "Grammar: ", unicode(self.grammar)
+#        print "Lexicon: ", self.lexicon.get_all_tags()
+#        print "Grammar: ", unicode(self.grammar)
+
+    def get_best_tag(self, word):
+        best_score = 0
+        best_tag = None
+        for tag in self.lexicon.get_all_tags():
+            score = self.lexicon.score_tagging(word, tag)
+            if best_tag is None or score > best_score:
+                best_score = score
+                best_tag = tag
+        return best_tag
 
     def get_best_parse(self, sentence):
         """
@@ -47,7 +58,7 @@ class PCFGParser(Parser):
         # TODO: implement this method
 
         matrix = (len(sentence) + 1) * [0]
-        print "len(matrix)=", len(matrix)
+#        print "len(matrix)=", len(matrix)
         for i in range(len(sentence) + 1):
             matrix[i] = (len(sentence) + 1) * [0]
             for j in range(i, len(sentence) + 1):
@@ -58,13 +69,12 @@ class PCFGParser(Parser):
         print "Sentence: ", sentence
         i = 0
         for word in sentence:
-            for tag_for_word in self.lexicon.word_to_tag_counters[word]:
-                for tag in tag_for_word:
-                    print word, "->", tag
-                    score = self.lexicon.score_tagging(word, tag)
-                    print "matrix[", i, ",", i + 1, ", ", tag, "] = ", score
-                    matrix[i][i+1][tag] = score
-                    back[i][i+1][tag] = word
+            tag = self.get_best_tag(word)
+#            print word, "->", tag
+            score = self.lexicon.score_tagging(word, tag)
+#            print "matrix[", i, ",", i + 1, ", ", tag, "] = ", score
+            matrix[i][i+1][tag] = score
+            back[i][i+1][tag] = word
 
             # Handle unaries
 
@@ -77,9 +87,9 @@ class PCFGParser(Parser):
                         prob = urAtoB.score * matrix[i][i+1][B]
                         if  prob > matrix[i][i+1][A]:
                             matrix[i][i+1][A] = prob
-                            print "matrix[", i, ",", i + 1, ", ", A, "] = ", prob
+#                            print "matrix[", i, ",", i + 1, ", ", A, "] = ", prob
                             back[i][i+1][A] = B
-                            print "back[", i, ",", i + 1, ", ", A, "] = ", B
+#                            print "back[", i, ",", i + 1, ", ", A, "] = ", B
                             added = True
 
             i = i + 1
@@ -88,13 +98,13 @@ class PCFGParser(Parser):
             print "span=", span
             for begin in range(0, len(sentence) - span + 1):
                 end = begin + span
-                print "\tbegin=", begin, " end=", end
+#                print "\tbegin=", begin, " end=", end
                 for split in range(begin + 1, end - 1 + 1):
-                    print "\t\tsplit=", split
+#                    print "\t\tsplit=", split
                     for B in matrix[begin][split]:
-                        print "\t\t\tB=", B
+#                        print "\t\t\tB=", B
                         for C in matrix[split][end]:
-                            print "\t\t\t\tC=", C
+#                            print "\t\t\t\tC=", C
                             Bs = self.grammar.get_binary_rules_by_left_child(B)
                             Cs = self.grammar.get_binary_rules_by_right_child(C)
                             BCs = set(Bs).intersection(set(Cs))
@@ -104,8 +114,8 @@ class PCFGParser(Parser):
                                 if prob > matrix[begin][end][A]:
                                     matrix[begin][end][A] = prob
                                     back[begin][end][A] = (split, B, C)
-                                    print "matrix[", begin, ",", end, ", ", A, "] = ", prob
-                                    print "back[", begin, ",", end, ", ", A, "] = ", (split, B, C)
+#                                    print "matrix[", begin, ",", end, ", ", A, "] = ", prob
+#                                    print "back[", begin, ",", end, ", ", A, "] = ", (split, B, C)
                 # Handle unaries
                 added = True
                 while added:
@@ -116,16 +126,19 @@ class PCFGParser(Parser):
                             prob = urAtoB.score * matrix[begin][end][B]
                             if  prob > matrix[begin][end][A]:
                                 matrix[begin][end][A] = prob
-                                print "matrix[", begin, ",", end, ", ", A, "] = ", prob
+#                                print "matrix[", begin, ",", end, ", ", A, "] = ", prob
                                 back[begin][end][A] = B
-                                print "back[", begin, ",", end, ", ", A, "] = ", B
+#                                print "back[", begin, ",", end, ", ", A, "] = ", B
                                 added = True
 
+        print "Done!"
         print matrix[0][len(sentence)]
         print back[0][len(sentence)]
                             
-
+        
         result = self.stepback(back, 0, len(sentence), 'ROOT')
+        if result == []: result = Tree('ROOT', [Tree('')])
+    
         result = TreeAnnotations.unannotate_tree(result)
         return result
 
@@ -265,7 +278,22 @@ class TreeAnnotations:
         # mark nodes with the label of their parent nodes, giving a second
         # order vertical markov process
 
-        return TreeAnnotations.binarize_tree(unannotated_tree)
+        return TreeAnnotations.binarize_tree(TreeAnnotations.annotate_tree_helper(unannotated_tree, ""))
+    
+    @classmethod
+    def annotate_tree_helper(cls, tree, parent):
+        if tree.is_leaf():
+            return Tree(tree.label)
+
+        if parent != "": 
+            label = tree.label + "^" + parent.label
+        else:
+            label = tree.label
+        
+        annotated_children = []
+        for child in tree.children:
+            annotated_children.append(TreeAnnotations.annotate_tree_helper(child, tree))
+        return Tree(label, annotated_children)
 
     @classmethod
     def binarize_tree(cls, tree):
