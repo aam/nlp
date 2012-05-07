@@ -33,7 +33,7 @@ class PCFGParser(Parser):
         ann_train_trees = []
         for train_tree in train_trees:
             ann_train_trees.append(TreeAnnotations.annotate_tree(train_tree))
-            bin_train_trees.append(TreeAnnotations.binarize_tree(train_tree))
+#            bin_train_trees.append(TreeAnnotations.binarize_tree(train_tree))
 	self.lexicon = Lexicon(ann_train_trees)
         self.grammar = Grammar(ann_train_trees)
 
@@ -45,19 +45,6 @@ class PCFGParser(Parser):
 
 #        print "Bin:%s" % Trees.PennTreeRenderer.render(bin_train_trees[0])
 #        print "Ann:%s" % Trees.PennTreeRenderer.render(ann_train_trees[0])
-
-        
-
-    def get_best_tag(self, word):
-        best_score = 0
-        best_tag = None
-        for tag in self.lexicon.get_all_tags():
-            score = self.lexicon.score_tagging(word, tag)
-            if best_tag is None or score > best_score:
-                print 'get_best_tag', word, " cur=", tag, score, " best=", best_tag, best_score
-                best_score = score
-                best_tag = tag
-        return (best_tag, best_score)
 
     def get_best_parse(self, sentence):
         """
@@ -71,18 +58,19 @@ class PCFGParser(Parser):
         for i in range(len(sentence) + 1):
             matrix[i] = (len(sentence) + 1) * [0]
             for j in range(i, len(sentence) + 1):
-                matrix[i][j] = collections.defaultdict(lambda: 0.0)
+                matrix[i][j] = collections.defaultdict(lambda: 0)
 
         back = copy.deepcopy(matrix)
 
         print "Sentence: ", sentence
         i = 0
         for word in sentence:
-            (tag, score) = self.get_best_tag(word)
-            print word, "->", tag, " at ", score
-            print "matrix[", i, ",", i + 1, ", ", tag, "] = ", score
-            matrix[i][i+1][tag] = score
-            back[i][i+1][tag] = word
+            for tag in self.lexicon.get_all_tags():
+                score = self.lexicon.score_tagging(word, tag)
+#            print word, "->", tag, " at ", score
+#            print "matrix[", i, ",", i + 1, ", ", tag, "] = ", score
+                matrix[i][i+1][tag] = score
+                back[i][i+1][tag] = (word, )
 
             # Handle unaries
 
@@ -103,20 +91,16 @@ class PCFGParser(Parser):
             i = i + 1
 
         for span in range(2, len(sentence) + 1):
-            print "span=", span
+#            print "span=", span
             for begin in range(0, len(sentence) - span + 1):
                 end = begin + span
-                print "\tbegin=", begin, " end=", end
+#                print "\tbegin=", begin, " end=", end
                 for split in range(begin + 1, end - 1 + 1):
-                    print "\t\tsplit=", split
-                    for B in matrix[begin][split]:
-#                        print "\t\t\tB=", B, " size of C=", len(matrix[split][end])
-                        Bs = self.grammar.get_binary_rules_by_left_child(B)
-                        for C in matrix[split][end]:
-#                            print "\t\t\t\tC=", C
-                            Cs = self.grammar.get_binary_rules_by_right_child(C)
-                            BCs = set(Bs).intersection(set(Cs))
-                            for BC in BCs:
+#                    print "\t\tsplit=", split, " left size = ", len(matrix[begin][split]), " right size = ", len(matrix[split][end])
+                    for BC in self.grammar.get_binary_rules():
+                        B = BC.left_child
+                        C = BC.right_child
+                        if B in matrix[begin][split] and C in matrix[split][end]:
                                 A = BC.parent
                                 prob = matrix[begin][split][B] * matrix[split][end][C] * BC.score
                                 if prob > matrix[begin][end][A]:
@@ -139,14 +123,14 @@ class PCFGParser(Parser):
 #                                print "back[", begin, ",", end, ", ", A, "] = ", B
                                 added = True
 
-        print "Done! len(sentence)=", len(sentence)
-        print matrix[0][len(sentence)]
-        print back[0][len(sentence)]
+#        print "Done! len(sentence)=", len(sentence)
+#        print matrix[0][len(sentence)]
+#        print back[0][len(sentence)]
                             
         result = self.stepback(back, 0, len(sentence), 'ROOT')
         if result == []: result = Tree('ROOT', [Tree('')])
     
-        print "Result:%s" % Trees.PennTreeRenderer.render(result)
+#        print "Result:%s" % Trees.PennTreeRenderer.render(result)
 
         result = TreeAnnotations.unannotate_tree(result)
 
@@ -160,17 +144,22 @@ class PCFGParser(Parser):
 #        print "back[", i, "][", j, "][", NT, "] = ", directions
         children = []
         if isinstance(directions, tuple):
-            (split, B, C) = directions
-            children.append(self.stepback(back, i, split, B))
-            children.append(self.stepback(back, split, j, C))
-        else:
-            newNT = directions
-            if not self.lexicon.is_known(newNT):
-                cs = self.stepback(back, i, j, newNT)
-                if isinstance(cs, Tree):
-                    children.append(cs)
+            if len(directions) == 3:
+                (split, B, C) = directions
+                children.append(self.stepback(back, i, split, B))
+                children.append(self.stepback(back, split, j, C))
             else:
-                children.append(Tree(newNT))
+                # Terminal
+                (terminal, ) = directions
+#                print "Terminal = ", terminal
+                children.append(Tree(terminal))
+        else:
+            # non-terminal
+            newNT = directions
+            cs = self.stepback(back, i, j, newNT)
+            if isinstance(cs, Tree):
+                children.append(cs)
+
         if len(children) > 0:
             result = Tree(NT, children)
         else:
@@ -290,7 +279,7 @@ class TreeAnnotations:
 
         
 #        print "Before ann:%s" % Trees.PennTreeRenderer.render(unannotated_tree)
-        at = unannotated_tree # TreeAnnotations.annotate_tree_helper(unannotated_tree, "")
+        at =  TreeAnnotations.annotate_tree_helper(unannotated_tree, "")
 #        print "After ann:%s" % Trees.PennTreeRenderer.render(at)
         bt = TreeAnnotations.binarize_tree(at)
 #        print "After bin:%s" % Trees.PennTreeRenderer.render(bt)
@@ -445,19 +434,19 @@ class Grammar:
                 lambda: [])
 
         unary_rule_counter = collections.defaultdict(lambda: 0)
-        binary_rule_counter = collections.defaultdict(lambda: 0)
+        self.binary_rule_counter = collections.defaultdict(lambda: 0)
         symbol_counter = collections.defaultdict(lambda: 0)
 
         for train_tree in train_trees:
             self.tally_tree(train_tree, symbol_counter,
-                    unary_rule_counter, binary_rule_counter)
+                    unary_rule_counter, self.binary_rule_counter)
         for unary_rule in unary_rule_counter:
             unary_prob = float(unary_rule_counter[unary_rule]) \
                     / symbol_counter[unary_rule.parent]
             unary_rule.score = unary_prob
             self.add_unary(unary_rule)
-        for binary_rule in binary_rule_counter:
-            binary_prob = float(binary_rule_counter[binary_rule]) \
+        for binary_rule in self.binary_rule_counter:
+            binary_prob = float(self.binary_rule_counter[binary_rule]) \
                     / symbol_counter[binary_rule.parent]
             binary_rule.score = binary_prob
             self.add_binary(binary_rule)
@@ -485,6 +474,8 @@ class Grammar:
     def add_unary(self, unary_rule):
         self.unary_rules_by_child[unary_rule.child].append(unary_rule)
 
+    def get_binary_rules(self):
+        return self.binary_rule_counter
 
     def get_binary_rules_by_left_child(self, left_child):
         return self.binary_rules_by_left_child[left_child]
