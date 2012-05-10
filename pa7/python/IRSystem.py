@@ -150,37 +150,34 @@ class IRSystem:
         #       word actually occurs in the document.
         print "Calculating tf-idf..."
         self.tfidf = {}
-        count = len(self.vocab)
+#        count = len(self.vocab)
         for word in self.vocab:
             for d in range(len(self.docs)):
                 if word not in self.tfidf:
                     self.tfidf[word] = collections.defaultdict(lambda:0.0)
 #                self.tfidf[word][d] = 0.0
 #            print "tf[", word, "]=", self.tfidf[word]
-            if count % 1000 == 0:
-                print count, "left..."
-            count -= 1
+#            if count % 1000 == 0:
+#                print count, "left..."
+#            count -= 1
 
         count = len(self.docs)
-        id = 0
-        for d in self.docs:
-            print count, "left..."
-            for w in d:
-                self.tfidf[w][id] += 1
-#                print "tfidf[", w, "][", id, "]=", self.tfidf[w][id]
+#        print "Setting word count for all ", count, " docs"
+        for id in range(len(self.docs)):
+#            print count, "left..."
+            for w in self.docs[id]:
+                self.tfidf[w][id] += 1.0
             count -= 1
-            id += 1
-        N = len(self.docs)
+        N = float(len(self.docs))
+#        print "tfidf size=", len(self.tfidf)
         for word in self.tfidf:
-            df = len(self.tfidf[word])
-#            print "word=", word, "df=", df, " docs=", self.tfidf[word]
+            df = float(len(self.tfidf[word]))
             for doc in self.tfidf[word]:
                 d = self.tfidf[word][doc]
-#                print "\tdoc=", doc, "d=", d
+                idf = math.log(N/df, 10)
                 if d>0:
-                    self.tfidf[word][doc] = (1 + math.log(d, 10)) * math.log(N/df, 10)
-#                print "tfidf[", word, "][", doc, "]=", self.tfidf[word][doc], " d=", d
-        print "tf calculated"
+                    self.tfidf[word][doc] = (1.0 + math.log(d, 10)) * idf
+#        print "tf calculated"
 
         # ------------------------------------------------------------------
 
@@ -189,7 +186,7 @@ class IRSystem:
         # ------------------------------------------------------------------
         # TODO: Return the tf-idf weigthing for the given word (string) and
         #       document index.
-        tfidf = 0.0
+        tfidf = self.tfidf[word][document]
         # ------------------------------------------------------------------
         return tfidf
 
@@ -223,14 +220,8 @@ class IRSystem:
         for iDoc in range(0, len(self.docs)):
             title = self.titles[iDoc]
             for word in self.docs[iDoc]:
-#                theset = set(inv_index[word])
-#                theset.add(title)
                 inv_index[word].append(title) # = list(theset)
             
-            if iDoc % 10 == 0:
-                print time.strftime('%X %x %Z'), iDoc, "processed"
-#            print "\t", word, "-", inv_index[word]
-
         self.inv_index = inv_index
 
         # ------------------------------------------------------------------
@@ -243,14 +234,13 @@ class IRSystem:
         """
         # ------------------------------------------------------------------
         # TODO: return the list of postings for a word.
-        posting = []
+        posting = set([])
         
         indices = self.inv_index[word]
         for doc in indices:
-            posting.append(self.titles.index(doc))
-            
+            posting.add(self.titles.index(doc))
 
-        return posting
+        return sorted(list(posting))
         # ------------------------------------------------------------------
 
 
@@ -281,10 +271,7 @@ class IRSystem:
         docs_set = set(titles)
         for stemmed_word in query:
             inv_index = self.inv_index[stemmed_word]
-#            print "inv_index = ", inv_index # , " for ", stemmed_word
-#            print "stemmed_word = ", stemmed_word
             docs_set = docs_set.intersection(set(inv_index))
-#            print "docs_set", docs_set
         
         docs = []
         for title in docs_set:
@@ -307,14 +294,40 @@ class IRSystem:
 
         # Right now, this code simply gets the score by taking the Jaccard
         # similarity between the query and every document.
-        words_in_query = set()
-        for word in query:
-            words_in_query.add(word)
+
+        wtq_cnt = collections.Counter(query)
+
+        all_doc_counters = {}
+
+        lendocs = {}
+        for d, doc in enumerate(self.docs):
+            doc_counters = collections.Counter(doc)
+            all_doc_counters[d] = doc_counters
+            
+            lendoc = 0.0
+            for w in doc_counters:
+                wtdt = self.get_tfidf(w, d)
+                lendoc += wtdt * wtdt
+            lendocs[d] = lendoc
+
+        for t in wtq_cnt:
+            cnt = wtq_cnt[t]
+
+            wtqt = 1.0 + math.log(float(cnt), 10)
+
+            postings = self.get_posting(t) # list of document indices for the word
+            for d in postings:
+                doc = self.docs[d]
+
+                doccount = all_doc_counters[d][t]
+                wtdt = self.get_tfidf(t, d)
+                scores[d] += wtdt * wtqt
 
         for d, doc in enumerate(self.docs):
-            words_in_doc = set(doc)
-            scores[d] = len(words_in_query.intersection(words_in_doc)) \
-                    / float(len(words_in_query.union(words_in_doc)))
+            lendoc = lendocs[d]
+            if lendoc > 0:
+                scores[d] = scores[d] / math.sqrt(lendoc)
+       
 
         # ------------------------------------------------------------------
 
