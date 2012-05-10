@@ -4,6 +4,8 @@ import math
 import os
 import re
 import sys
+import time
+import collections
 
 from PorterStemmer import PorterStemmer
 
@@ -148,11 +150,37 @@ class IRSystem:
         #       word actually occurs in the document.
         print "Calculating tf-idf..."
         self.tfidf = {}
+        count = len(self.vocab)
         for word in self.vocab:
             for d in range(len(self.docs)):
                 if word not in self.tfidf:
-                    self.tfidf[word] = {}
-                self.tfidf[word][d] = 0.0
+                    self.tfidf[word] = collections.defaultdict(lambda:0.0)
+#                self.tfidf[word][d] = 0.0
+#            print "tf[", word, "]=", self.tfidf[word]
+            if count % 1000 == 0:
+                print count, "left..."
+            count -= 1
+
+        count = len(self.docs)
+        id = 0
+        for d in self.docs:
+            print count, "left..."
+            for w in d:
+                self.tfidf[w][id] += 1
+#                print "tfidf[", w, "][", id, "]=", self.tfidf[w][id]
+            count -= 1
+            id += 1
+        N = len(self.docs)
+        for word in self.tfidf:
+            df = len(self.tfidf[word])
+#            print "word=", word, "df=", df, " docs=", self.tfidf[word]
+            for doc in self.tfidf[word]:
+                d = self.tfidf[word][doc]
+#                print "\tdoc=", doc, "d=", d
+                if d>0:
+                    self.tfidf[word][doc] = (1 + math.log(d, 10)) * math.log(N/df, 10)
+#                print "tfidf[", word, "][", doc, "]=", self.tfidf[word][doc], " d=", d
+        print "tf calculated"
 
         # ------------------------------------------------------------------
 
@@ -192,6 +220,16 @@ class IRSystem:
         inv_index = {}
         for word in self.vocab:
             inv_index[word] = []
+        for iDoc in range(0, len(self.docs)):
+            title = self.titles[iDoc]
+            for word in self.docs[iDoc]:
+#                theset = set(inv_index[word])
+#                theset.add(title)
+                inv_index[word].append(title) # = list(theset)
+            
+            if iDoc % 10 == 0:
+                print time.strftime('%X %x %Z'), iDoc, "processed"
+#            print "\t", word, "-", inv_index[word]
 
         self.inv_index = inv_index
 
@@ -206,6 +244,11 @@ class IRSystem:
         # ------------------------------------------------------------------
         # TODO: return the list of postings for a word.
         posting = []
+        
+        indices = self.inv_index[word]
+        for doc in indices:
+            posting.append(self.titles.index(doc))
+            
 
         return posting
         # ------------------------------------------------------------------
@@ -232,9 +275,20 @@ class IRSystem:
         # TODO: Implement Boolean retrieval. You will want to use your
         #       inverted index that you created in index().
         # Right now this just returns all the possible documents!
+        titles = []
+        for d in self.titles:
+            titles.append(d)
+        docs_set = set(titles)
+        for stemmed_word in query:
+            inv_index = self.inv_index[stemmed_word]
+#            print "inv_index = ", inv_index # , " for ", stemmed_word
+#            print "stemmed_word = ", stemmed_word
+            docs_set = docs_set.intersection(set(inv_index))
+#            print "docs_set", docs_set
+        
         docs = []
-        for d in range(len(self.docs)):
-            docs.append(d)
+        for title in docs_set:
+            docs.append(self.titles.index(title))
 
         # ------------------------------------------------------------------
 
