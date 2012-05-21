@@ -3,6 +3,7 @@ import re
 from xml.dom.minidom import parse
 import string
 import collections
+import xml
 
 class Wiki:
     
@@ -28,10 +29,10 @@ class Wiki:
         # Process the wiki file and fill the husbands Array
         # +1 for correct Answer, 0 for no answer, -1 for wrong answers
         # add 'No Answer' string as the answer when you dont want to answer
-        for wife in wives:
-            husbands.append('No Answer')
 
         if useInfoBox:
+            for wife in wives:
+                husbands.append('No Answer')
             dom = parse(f)
             for t in dom.getElementsByTagName("text"):
                 for c in t.childNodes:
@@ -60,6 +61,22 @@ class Wiki:
                                         ndxWife = ndxQ
                                         if ndxWife >= 0:
                                             husbands[ndxWife] = "Who is " + husband + "?"
+        else:
+            dom = parse(f)
+            for wife in wives:
+                found = False
+                for eTitle in dom.getElementsByTagName("title"):
+                    husband = eTitle.firstChild.nodeValue.encode("utf-8")
+                    print "husband ", husband
+                    parent = eTitle.parentNode
+                    fulltext = parent.toxml().encode("utf-8")
+                    if string.find(fulltext, wife.strip()) <> -1:
+                        husbands.append("Who is " + husband + "?")
+                        found = True
+                        break
+                if not found:
+                    husbands.append("No Answer")
+            
         f.close()
         print wives
         print husbands
@@ -107,7 +124,7 @@ if __name__ == '__main__':
     wikiFile = '../data/small-wiki.xml'
     wivesFile = '../data/wives.txt'
     goldFile = '../data/gold.txt'
-    useInfoBox = True;
+    useInfoBox = False;
     wiki = Wiki()
     wives = wiki.addWives(wivesFile)
     husbands = wiki.processFile(open(wikiFile), wives, useInfoBox)
