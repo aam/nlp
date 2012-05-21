@@ -28,38 +28,35 @@ class Wiki:
         # Process the wiki file and fill the husbands Array
         # +1 for correct Answer, 0 for no answer, -1 for wrong answers
         # add 'No Answer' string as the answer when you dont want to answer
+        mapWifeToIndex = collections.defaultdict(lambda: -1)
+        index = 0
         for wife in wives:
             husbands.append('No Answer')
+            mapWifeToIndex[re.sub('\n','', wife)] = index
+            print wife, "=", index
+            index += 1
+        print mapWifeToIndex
 
-        if useInfoBox:
-            dom = parse(f)
-            for t in dom.getElementsByTagName("text"):
-                for c in t.childNodes:
-                    if c.nodeType == c.TEXT_NODE:
-                        s = c.data.encode("utf-8")
-                        mName = re.search("\|\s*name\s*=\s*(.+)\n", s, re.IGNORECASE)
-                        mSpouse = re.search("\|\s*spouse\s*=\s*(.*)\s*\n", s, re.IGNORECASE)
 
-                        if mName <> None and mSpouse <> None:
-                            if len(mName.groups()) > 0 and len(mSpouse.groups()) > 0:
-                                husband = string.split(mName.group(1), "|")[0]
-                                if husband.startswith("General "):
-                                    husband = husband[len("General "):]
-#                            wife = string.split(mSpouse.group(1), "|")[0].strip()
-                                wife = mSpouse.group(1)
-                                mSquareBrackets = re.search("\[\[([^\]]*)\]\]", wife)
-                                if mSquareBrackets <> None and len (mSquareBrackets.groups()) > 0:
-                                    wife = mSquareBrackets.group(1)
-                                wife = string.split(wife, "(")[0].strip()
-                                wife = re.sub("\"[^\"]*\" ", "", wife)
-                                print "Looking for ", wife
-                                for ndxQ, wifeQ in enumerate(wives):
-                                    if wife.startswith(wifeQ.strip()):
-                                        print husband, "-", wife, "-", ndxQ
-#                                    ndxWife = mapWifeToIndex[wife] 
-                                        ndxWife = ndxQ
-                                        if ndxWife >= 0:
-                                            husbands[ndxWife] = "Who is " + husband + "?"
+        dom = parse(f)
+        for t in dom.getElementsByTagName("text"):
+            for c in t.childNodes:
+                if c.nodeType == c.TEXT_NODE:
+                    s = c.data.encode("utf-8")
+#                    print s
+#                    ndx = string.find(s, "|spouse")
+#                    if ndx > 0:
+#                        print s[ndx:ndx+100]
+#                    print c.data
+                    mName = re.search("\|\s*name\s*=\s*(.+)\n", s, re.IGNORECASE)
+                    mSpouse = re.search("\|\s*spouse\s*=\s*\[\[(.*)\]\]", s, re.IGNORECASE)
+
+                    if mName <> None and mSpouse <> None:
+                        if len(mName.groups()) > 0 and len(mSpouse.groups()) > 0:
+                            print mName.group(1), "-", mSpouse.group(1), "-", mapWifeToIndex[mSpouse.group(1)]
+                            ndxWife = mapWifeToIndex[mSpouse.group(1)] 
+                            if ndxWife >= 0:
+                                husbands[ndxWife] = "Whoe is " + mName.group(1) + "?"
         f.close()
         print wives
         print husbands
