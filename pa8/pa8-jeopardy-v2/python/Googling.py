@@ -1,3 +1,5 @@
+import re
+import collections
 
 # defines the components of a query result from Google.
 class GoogleQuery:
@@ -120,8 +122,42 @@ class Googling:
     def guessLocation(self, data):
         #TODO: use the GoogleQuery object for landmark to generate a tuple of the location
         # of the landmark
-        print(data[1])
-        return Location('', '')
+        cities = collections.defaultdict(lambda:0)
+        states = collections.defaultdict(lambda:0)
+        for d in data:
+#            print(d)
+            city = ""
+            state = ""
+            for x in re.finditer("<LOCATION>([^<]+)</LOCATION>", d.snip):
+                if city == "": 
+                    city = x.group(1).lower()
+                else:
+                    state = x.group(1).lower()
+                print "x.group(1)=", x.group(1)
+#                if state == "" and city <> "":
+#                    state = city
+#                    city = ""
+            print "\tcity=", city, "state=", state
+            if city.strip() <> "":
+                cities[city]+=1
+            if state.strip() <> "":
+                states[state]+=1
+        
+        print "\tcities=", cities, "states=", states
+        maxcount = 0
+        maxcity = ""
+        for city, count in cities.items():
+            if count > maxcount:
+                maxcount = count
+                maxcity = city
+        maxcount = 0
+        maxstate = ""
+        for state, count in states.items():
+            if count > maxcount:
+                maxcount = count
+                maxstate = state
+        print "maxcity=", maxcity, "maxstate=", maxstate
+        return Location(maxcity, maxstate)
     
     # loops through each of the data associated with each query and passes it into the
     # guessLocation method, which returns the guess of the user
